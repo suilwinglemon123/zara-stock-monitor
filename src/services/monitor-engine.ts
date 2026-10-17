@@ -182,16 +182,17 @@ export class ZaraMonitorEngine {
     productId: number,
     productName: string,
     city: string = '上海',
-    targetSizes?: string[]
+    targetSizes?: string[],
+    radiusKm: number = 50
   ): Promise<void> {
     console.log(`\n  🏢 ${chalk.bold(`正在查询线下实体店库存 [${city}]...`)}`);
-    const stores = await this.client.searchPhysicalStores(city, 50);
+    const stores = await this.client.searchPhysicalStores(city, radiusKm);
     if (stores.length === 0) {
       console.log(chalk.yellow(`    未找到 ${city} 的相关 Zara 实体门店或网络超时。`));
       return;
     }
 
-    const storeIds = stores.slice(0, 10).map((s) => s.id);
+    const storeIds = stores.slice(0, 15).map((s) => s.id);
     const stocks = await this.client.getStoreStock(productId, storeIds, targetSizes);
     const storeMap = new Map<number, (typeof stores)[0]>(stores.map((s) => [s.id, s]));
 

@@ -41,6 +41,7 @@ program
   .requiredOption('-u, --url <url>', 'Zara 商品页面 URL 或货号')
   .option('-c, --city <city>', '查询城市名称 (默认: 上海)', '上海')
   .option('-s, --size <sizes>', '过滤指定尺码 (例如: 36 或 M，逗号分隔)')
+  .option('-r, --radius <radius>', '搜索半径公里数 (默认: 50)', '50')
   .action(async (options) => {
     await cmdStore(options, baseDir);
   });

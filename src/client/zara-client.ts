@@ -188,15 +188,16 @@ export class ZaraClient {
       if (!Array.isArray(data)) return [];
 
       return data.map((item: any) => {
-        const addrLines = item.address?.addressLines || [];
-        const addrStr = addrLines.length > 0 ? addrLines.join(' ') : item.address?.city || '';
+        const addrLines = item.addressLines || item.address?.addressLines || [];
+        const cityNameResolved = item.city || item.address?.city || cityName;
+        const addrStr = addrLines.length > 0 ? addrLines.join(' ') : cityNameResolved;
         return {
           id: Number(item.id),
           name: String(item.name || 'Zara 门店'),
-          city: String(item.address?.city || cityName),
+          city: String(cityNameResolved),
           address: addrStr,
-          lat: item.geoLocation?.latitude,
-          lng: item.geoLocation?.longitude,
+          lat: item.latitude ?? item.geoLocation?.latitude,
+          lng: item.longitude ?? item.geoLocation?.longitude,
         };
       });
     } catch (err) {

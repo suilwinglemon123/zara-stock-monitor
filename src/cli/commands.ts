@@ -3,10 +3,14 @@ import { ZaraClient } from '../client/zara-client.js';
 import { ZaraMonitorEngine } from '../services/monitor-engine.js';
 import { Notifier } from '../services/notifier.js';
 
-export async function cmdStore(options: { url: string; city: string; size?: string }, baseDir: string): Promise<void> {
+export async function cmdStore(
+  options: { url: string; city: string; size?: string; radius?: string },
+  baseDir: string
+): Promise<void> {
   const client = new ZaraClient();
   const engine = new ZaraMonitorEngine(baseDir);
   const sizeFilter = options.size ? options.size.split(',').map((s) => s.trim()) : undefined;
+  const radiusKm = options.radius ? parseInt(options.radius, 10) : 50;
 
   console.log(chalk.cyan('正在解析 Zara 商品详情...'));
   const product = await client.getProduct(options.url);
@@ -20,7 +24,7 @@ export async function cmdStore(options: { url: string; city: string; size?: stri
     console.log(`  🎨 款式: ${c.name} | 官方售价: ¥${c.price}`);
   }
 
-  await engine.queryStoresStock(product.productId, product.name, options.city, sizeFilter);
+  await engine.queryStoresStock(product.productId, product.name, options.city, sizeFilter, radiusKm);
   console.log();
 }
 
