@@ -1,0 +1,41 @@
+{
+  "name": "zara-stock-monitor",
+  "version": "1.0.0",
+  "description": "Smart inventory, restock, store stock and price drop monitor for Zara (TypeScript / Node.js)",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "zara-monitor": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx src/index.ts",
+    "check": "tsx src/index.ts check",
+    "watch": "tsx src/index.ts watch",
+    "store": "tsx src/index.ts store",
+    "add": "tsx src/index.ts add",
+    "list": "tsx src/index.ts list",
+    "test-notify": "tsx src/index.ts test-notify"
+  },
+  "keywords": [
+    "zara",
+    "stock-monitor",
+    "price-tracker",
+    "restock-alert",
+    "inventory-tracker",
+    "typescript"
+  ],
+  "author": "suilwinglemon123",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "undici": "^6.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}

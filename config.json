@@ -1,0 +1,26 @@
+{
+  "intervalSeconds": 300,
+  "proxy": "http://127.0.0.1:1082",
+  "notify": {
+    "BARK_KEY": "",
+    "SERVERCHAN_KEY": "",
+    "PUSHDEER_KEY": "",
+    "FEISHU_WEBHOOK": "",
+    "DINGTALK_WEBHOOK": "",
+    "TG_BOT_TOKEN": "",
+    "TG_CHAT_ID": ""
+  },
+  "targets": [
+    {
+      "name": "ZW 系列工装裤",
+      "url": "https://www.zara.cn/cn/zh/zw-系列工装裤-p08246261.html",
+      "targetSizes": ["36", "38"],
+      "targetPrice": 350.0,
+      "notifyRestock": true,
+      "notifyPriceDrop": true,
+      "checkStores": true,
+      "preferredCity": "上海",
+      "enabled": true
+    }
+  ]
+}
