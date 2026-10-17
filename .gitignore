@@ -11,6 +11,7 @@ yarn-error.log*
 # Environment & local state
 .env
 state.json
+*sale_stock.json
 .DS_Store
 .idea/
 .vscode/

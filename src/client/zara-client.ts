@@ -75,7 +75,7 @@ export class ZaraClient {
     }
   }
 
-  private getHeaders(referer?: string): Record<string, string> {
+  getHeaders(referer?: string): Record<string, string> {
     const headers: Record<string, string> = {
       'User-Agent':
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',

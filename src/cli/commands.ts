@@ -116,3 +116,114 @@ export async function cmdTestNotify(baseDir: string): Promise<void> {
   );
   console.log(chalk.green('✔ 测试消息发送完毕，请检查您的桌面或手机推送。'));
 }
+
+export async function cmdScanSale(
+  options: { city?: string; section?: string; output?: string },
+  baseDir: string
+): Promise<void> {
+  const client = new ZaraClient();
+  const city = options.city || '南京';
+  console.log(chalk.cyan(`正在检索 ${city} 线下实体门店...`));
+  const stores = await client.searchPhysicalStores(city, 50);
+  if (stores.length === 0) {
+    console.log(chalk.red(`未找到 ${city} 线下门店。`));
+    return;
+  }
+
+  const primaryStore = stores[0];
+  console.log(chalk.green(`✔ 选定目标门店: ${primaryStore.name} (ID: ${primaryStore.id}, 地址: ${primaryStore.address})`));
+
+  console.log(chalk.cyan('正在从 Zara 官方全品类索引同步特价精选商品池...'));
+  const catTasks: { catId: number; section: string }[] = [];
+  if (!options.section || options.section.includes('女')) {
+    catTasks.push({ catId: 2419737, section: '女士' });
+  }
+  if (!options.section || options.section.includes('男')) {
+    catTasks.push({ catId: 2436823, section: '男士' });
+  }
+
+  const allProds = new Map<number, any>();
+  for (const { catId, section } of catTasks) {
+    try {
+      const res = await fetch(`https://www.zara.cn/cn/zh/category/${catId}/products?ajax=true`, {
+        headers: client.getHeaders('https://www.zara.cn/cn/zh/'),
+      });
+      if (!res.ok) continue;
+      const data: any = await res.json();
+      const elements = data.productGroups?.[0]?.elements || [];
+      for (const el of elements) {
+        for (const comp of el.commercialComponents || []) {
+          if (comp.id && comp.name && !allProds.has(comp.id)) {
+            const colors = comp.detail?.colors || [];
+            const oldPrice = colors[0]?.oldPrice ? colors[0].oldPrice / 100 : comp.oldPrice ? comp.oldPrice / 100 : undefined;
+            const price = colors[0]?.price ? colors[0].price / 100 : comp.price ? comp.price / 100 : 0;
+            const discountRate = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
+            const seoKeyword = comp.seo?.keyword || '';
+            const seoId = comp.seo?.seoProductId || '';
+            const url = `https://www.zara.cn/cn/zh/${seoKeyword ? decodeURIComponent(seoKeyword) : 'product'}-p${seoId}.html`;
+            allProds.set(comp.id, {
+              id: comp.id,
+              section,
+              name: comp.name,
+              ref: comp.reference || comp.detail?.reference || '',
+              familyName: comp.familyName || '',
+              price,
+              oldPrice,
+              discountRate,
+              url,
+            });
+          }
+        }
+      }
+    } catch {}
+  }
+
+  const prods = Array.from(allProds.values());
+  console.log(chalk.cyan(`获取到 ${prods.length} 款特价打折商品，正在并发扫描 ${primaryStore.name} 真实库存分布...`));
+
+  const inStockResults: any[] = [];
+  const chunkSize = 6;
+  for (let i = 0; i < prods.length; i += chunkSize) {
+    const chunk = prods.slice(i, i + chunkSize);
+    await Promise.all(
+      chunk.map(async (p) => {
+        try {
+          const stocks = await client.getStoreStock(p.id, [primaryStore.id]);
+          const storeStock = stocks[0];
+          if (storeStock) {
+            const totalStock = Object.values(storeStock.sizesStock).reduce((acc, v) => acc + v.stock, 0);
+            if (totalStock > 0) {
+              inStockResults.push({
+                ...p,
+                totalStock,
+                sizesStock: storeStock.sizesStock,
+              });
+            }
+          }
+        } catch {}
+      })
+    );
+    await new Promise((r) => setTimeout(r, 100));
+  }
+
+  inStockResults.sort((a, b) => b.totalStock - a.totalStock);
+  console.log(`\n${chalk.green.bold(`✔ 扫描完成！${primaryStore.name} 当前共有 ${inStockResults.length} 款特价打折商品有现货：`)}\n`);
+
+  for (const [idx, item] of inStockResults.entries()) {
+    console.log(`[${idx + 1}] ${chalk.bold(item.name)} [${item.section}] (Ref: ${item.ref})`);
+    console.log(`    💰 现价: ${chalk.green(`¥${item.price}`)} ${item.oldPrice ? chalk.gray(`(原价 ¥${item.oldPrice}, 立省 ${item.discountRate}%)`) : ''} | 店内现货: ${chalk.yellow.bold(`${item.totalStock} 件`)}`);
+    console.log(`    🔗 链接: ${chalk.blue(item.url)}`);
+    const szDesc = Object.entries(item.sizesStock)
+      .map(([s, d]: [string, any]) => `${s}: ${d.stock}件 (架上:${d.salesArea}/内仓:${d.warehouse})`)
+      .join(' | ');
+    console.log(`    📏 尺码: ${chalk.gray(szDesc)}`);
+    console.log();
+  }
+
+  if (options.output) {
+    const fs = await import('fs');
+    fs.writeFileSync(options.output, JSON.stringify(inStockResults, null, 2), 'utf8');
+    console.log(chalk.green(`✔ 完整结果已保存至: ${options.output}`));
+  }
+}
+

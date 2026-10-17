@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { ZaraMonitorEngine } from './services/monitor-engine.js';
-import { cmdAdd, cmdList, cmdStore, cmdTestNotify } from './cli/commands.js';
+import { cmdAdd, cmdList, cmdScanSale, cmdStore, cmdTestNotify } from './cli/commands.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,6 +76,17 @@ program
   .description('发送测试通知验证各个推送通道配置')
   .action(async () => {
     await cmdTestNotify(baseDir);
+  });
+
+// 7. scan-sale
+program
+  .command('scan-sale')
+  .description('全量扫描指定门店当前所有有现货的官方打折促销商品')
+  .option('-c, --city <city>', '目标门店城市 (默认: 南京)', '南京')
+  .option('--section <section>', '过滤性别品类 (女士 或 男士)')
+  .option('-o, --output <file>', '导出扫描结果为 JSON 文件')
+  .action(async (options) => {
+    await cmdScanSale(options, baseDir);
   });
 
 // 默认无参数时执行单次检查

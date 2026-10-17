@@ -15,7 +15,8 @@
     "store": "tsx src/index.ts store",
     "add": "tsx src/index.ts add",
     "list": "tsx src/index.ts list",
-    "test-notify": "tsx src/index.ts test-notify"
+    "test-notify": "tsx src/index.ts test-notify",
+    "scan-sale": "tsx src/index.ts scan-sale"
   },
   "keywords": [
     "zara",
