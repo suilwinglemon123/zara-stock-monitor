@@ -233,6 +233,22 @@ export async function createOrderAndGetPaymentLink(options = {}) {
     exec(`open "${paymentUrl}"`);
   }
 
+  // 尝试通过本机 QQ 机器人推送
+  try {
+    const { sendQQNotification } = await import('./send_to_qq.js');
+    const qqMsg = `【Zara 订单支付链接】\n` +
+      `订单编号：${orderId}\n` +
+      `商品名称：${checkoutData.order?.suborders?.[0]?.items?.[0]?.detail?.name || '商品'}\n` +
+      `实付金额：¥${((checkoutData.order?.orderTotalAmount || 0) / 100).toFixed(2)}\n` +
+      `收货人：${address.firstName} (${address.addressLines?.join(' ')})\n\n` +
+      `🔗 支付链接（支付宝通用收银台）：\n${paymentUrl}\n\n` +
+      `提示：此链接无 OpenID 限制，手机/电脑打开均可直接唤起付款或代付。`;
+    await sendQQNotification(qqMsg);
+    console.log('已成功通过本机 QQ 机器人将支付链接推送至您的 QQ！');
+  } catch (qqErr) {
+    console.log('QQ 机器人自动推送提示:', qqErr.message);
+  }
+
   return {
     orderId,
     paymentUrl,
